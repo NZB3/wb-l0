@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"log"
+	"fmt"
 )
 
 type db struct {
@@ -11,20 +11,28 @@ type db struct {
 
 var instance *db = nil
 
-func NewConnection(connectionURI string) *db {
+func NewConnection(connectionURI string) (*db, error) {
 	if instance == nil {
+		conn, err := new(connectionURI)
+		if err != nil {
+			return nil, err
+		}
+
 		instance = &db{
-			connection: new(connectionURI),
+			connection: conn,
 		}
 	}
 
-	return instance
+	return instance, nil
 }
 
-func new(connectionURI string) *sql.DB {
+func new(connectionURI string) (*sql.DB, error) {
+	const op = "database.new"
+
 	conn, err := sql.Open("postgres", connectionURI)
 	if err != nil {
-		log.Panicf("Error with connection to database: %s", err)
+		return nil, fmt.Errorf("%s: %s", op, err)
 	}
-	return conn
+
+	return conn, nil
 }
