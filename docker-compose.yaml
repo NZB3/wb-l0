@@ -1,12 +1,41 @@
-version "3"
+version: '3.8'
 services:
-  redis:
-    image: redis:alpine
+  db:
+    image: postgres:15
+    env_file:
+      - ./db/.env
+    volumes:
+      - ./db/data:/var/lib/postgresql/data/
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    expose:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=nikolay
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=wb_l0
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - 5432:5432
+    restart: always
+    networks:
+      - mynetwork
+
+  cache:
+    image: redis
     ports:
       - "6379:6379"
     volumes:
-      - ./data:/data
-    command: redis-server --appendonly yes
-    
+      - ./cache/data:/data
+    networks:
+      - mynetwork
+networks:
+  mynetwork:
+    driver: bridge
+
 
   
