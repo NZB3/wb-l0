@@ -52,7 +52,7 @@ CREATE TABLE payments (
 
 CREATE TABLE items (
 	chrt_id INTEGER UNIQUE PRIMARY KEY,
-	order_uid VARCHAR(255) UNIQUE,
+	order_uid VARCHAR(255),
   	track_number VARCHAR(255),
   	price INTEGER,
   	rid VARCHAR(255),
