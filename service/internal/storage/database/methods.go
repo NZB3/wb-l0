@@ -24,7 +24,7 @@ func (db *db) GetOrdersInLast(duration time.Duration) ([]models.Order, error) {
 		FROM orders o
 		LEFT JOIN delivery d ON o.order_uid = d.order_uid
 		LEFT JOIN payments p ON o.order_uid = p.order_uid
-		WHERE o.date_created <= $1;
+		WHERE o.date_created >= $1;
 	`, startTime)
 
 	if err != nil {
