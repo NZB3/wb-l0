@@ -56,8 +56,7 @@ func main() {
 		if err != nil {
 			log.Println(err)
 		}
-	}
-
+	
 	fmt.Println()
 
 	for _, order := range orders {

@@ -23,7 +23,7 @@ services:
       - 5432:5432
     restart: always
     networks:
-      - mynetwork
+      - main
   cache:
     image: redis
     ports:
@@ -32,7 +32,15 @@ services:
       - ./cache/data:/data
     restart: always
     networks:
-      - mynetwork
+      - main
+  nats:
+    image: nats-streaming
+    ports:
+      - "8222:8222"
+      - "4222:4222"
+    restart: always
+    networks:
+      - main
 networks:
-  mynetwork:
+  main:
     driver: bridge
