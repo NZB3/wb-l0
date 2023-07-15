@@ -14,18 +14,22 @@ import (
 )
 
 type subscriber struct {
-	Subscriptions map[string]subscription
-	sc            stan.Conn
-	db            db
-	cache         cache
-	startOpt      stan.SubscriptionOption
-	msgCount      int
+	sc       stan.Conn
+	db       db
+	cache    cache
+	startOpt stan.SubscriptionOption
+	msgCount int
+	subscription
 }
 
 type subscription struct {
 	Subj string
 	stan.Subscription
 }
+
+var (
+	ErrSubscriptionNotExists error = fmt.Errorf("subscription not exists")
+)
 
 var (
 	clusterID, clientID string = "test-cluster", "stan-sub"
@@ -65,12 +69,11 @@ func NewSubscriber(nc *nats.Conn, db db, cache cache) (*subscriber, error) {
 	}
 
 	return &subscriber{
-		Subscriptions: make(map[string]subscription),
-		sc:            sc,
-		db:            db,
-		cache:         cache,
-		startOpt:      startOpt,
-		msgCount:      0,
+		sc:       sc,
+		db:       db,
+		cache:    cache,
+		startOpt: startOpt,
+		msgCount: 0,
 	}, nil
 }
 
@@ -82,14 +85,21 @@ func (s *subscriber) Subscribe(subj string) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	s.Subscriptions[subj] = subscription{
+	s.subscription = subscription{
 		Subj:         subj,
 		Subscription: sub,
 	}
 	return nil
 }
 
-func (s *subscriber) ServSubscription(sub *subscription) {
+func (s *subscriber) ServSubscription() error {
+	op := "nats.subscriber.ServSubscription"
+
+	sub := s.subscription
+	if sub == (subscription{}) {
+		return fmt.Errorf("%s: %w", op, ErrSubscriptionNotExists)
+	}
+
 	log.Printf("Listening on [%s], clientID=[%s], qgroup=[%s] durable=[%s]\n", sub.Subj, clientID, qgroup, durable)
 
 	if showTime {
@@ -113,6 +123,7 @@ func (s *subscriber) ServSubscription(sub *subscription) {
 		}
 	}()
 	<-cleanupDone
+	return nil
 }
 
 func (s *subscriber) subscribe(subj string) (stan.Subscription, error) {

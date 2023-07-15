@@ -39,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = subscriber.ServSubscription("foo")
+	err = subscriber.ServSubscription()
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
