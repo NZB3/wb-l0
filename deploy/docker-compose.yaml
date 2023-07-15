@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    env_file:
+      - .env
+    volumes:
+      - ./db/data:/var/lib/postgresql/data/
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    expose:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - 5432:5432
+    restart: always
+    networks:
+      - main
+  cache:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes: 
+      - ./cache/data:/data
+    restart: always
+    networks:
+      - main
+  nats:
+    image: nats-streaming
+    ports:
+      - "8222:8222"
+      - "4222:4222"
+    restart: always
+    networks:
+      - main
+networks:
+  main:
+    driver: bridge
