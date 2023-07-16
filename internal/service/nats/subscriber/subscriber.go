@@ -48,7 +48,7 @@ var (
 func NewSubscriber(nc *nats.Conn, db db, cache cache) (*subscriber, error) {
 	op := "nats.subscriber.NewSubscriber"
 
-	sc, err := stan.Connect(clusterID, clientID, stan.NatsConn(nc), connectionLostHendler())
+	sc, err := stan.Connect(clusterID, clientID, stan.NatsConn(nc), connectionLostHandler())
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -128,17 +128,15 @@ func (s *subscriber) ServSubscription() error {
 
 func (s *subscriber) subscribe(subj string) (stan.Subscription, error) {
 	op := "nats.subscriber.subscribe"
+	messageHandler, err := s.msgHandler()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
-	sub, err := s.sc.QueueSubscribe(subj, qgroup, s.msgHandler(), s.startOpt, stan.DurableName(durable))
+	sub, err := s.sc.QueueSubscribe(subj, qgroup, messageHandler, s.startOpt, stan.DurableName(durable))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return sub, nil
-}
-
-func connectionLostHendler() stan.Option {
-	return stan.SetConnectionLostHandler(func(_ stan.Conn, reason error) {
-		log.Printf("Connection lost, reason: %v", reason)
-	})
 }
