@@ -28,6 +28,7 @@ type dateCreated struct {
 
 func (d *dateCreated) UnmarshalJSON(data []byte) error {
 	op := "models.dateCreated.UnmarshalJSON"
+
 	var t time.Time
 	err := json.Unmarshal(data, &t)
 	if err != nil {
@@ -38,6 +39,17 @@ func (d *dateCreated) UnmarshalJSON(data []byte) error {
 	}
 	d.Time = t
 	return nil
+}
+
+func (d *dateCreated) MarshalJSON() ([]byte, error) {
+	op := "models.dateCreated.MarshalJSON"
+
+	data, err := json.Marshal(d.Time)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return data, nil
 }
 
 func (o *Order) Unmarshal(data []byte) error {
