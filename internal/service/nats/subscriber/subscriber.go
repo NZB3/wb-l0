@@ -128,12 +128,8 @@ func (s *subscriber) ServSubscription() error {
 
 func (s *subscriber) subscribe(subj string) (stan.Subscription, error) {
 	op := "nats.subscriber.subscribe"
-	messageHandler, err := s.msgHandler()
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
 
-	sub, err := s.sc.QueueSubscribe(subj, qgroup, messageHandler, s.startOpt, stan.DurableName(durable))
+	sub, err := s.sc.QueueSubscribe(subj, qgroup, s.MsgHandler(), s.startOpt, stan.DurableName(durable))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}

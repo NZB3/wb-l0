@@ -1,7 +1,7 @@
+// Not shure about rightness of this code. Maybe it should not be here.
 package subscriber
 
 import (
-	"fmt"
 	"log"
 	"project/internal/models"
 	"time"
@@ -12,33 +12,19 @@ import (
 type db interface {
 	SaveDataFromOrder(order models.Order) error
 	GetOrdersInLast(time.Duration) ([]models.Order, error)
-	CheckDB() error
 }
 
 type cache interface {
 	GetOrder(orederID string) (models.Order, error)
 	SetOrder(order models.Order) error
-	CheckCache() error
 }
 
-func (s *subscriber) msgHandler() (stan.MsgHandler, error) {
-	op := "nats.subscriber.msgHandler"
-
-	err := s.db.CheckDB()
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	err = s.cache.CheckCache()
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
+func (s *subscriber) MsgHandler() stan.MsgHandler {
 	if s.subscription.Subj == "order" {
-		return s.orderMessage(), nil
+		return s.orderMessage()
 	}
 
-	return s.standardMessage(), nil
+	return s.standardMessage()
 }
 
 func (s *subscriber) orderMessage() stan.MsgHandler {
@@ -46,8 +32,22 @@ func (s *subscriber) orderMessage() stan.MsgHandler {
 	return func(msg *stan.Msg) {
 		s.msgCount++
 		printMsg(msg, s.msgCount)
-		_ = op
-		// TODO: write logic to order message handler
+
+		order := models.Order{}
+		err := order.Unmarshal(msg.Data)
+		if err != nil {
+			log.Printf("%s: %v", op, err)
+		}
+
+		err = s.db.SaveDataFromOrder(order)
+		if err != nil {
+			log.Printf("%s: %v", op, err)
+		}
+
+		err = s.cache.SetOrder(order)
+		if err != nil {
+			log.Printf("%s: %v", op, err)
+		}
 	}
 }
 
