@@ -38,7 +38,7 @@ func (rc *redisCache) GetOrder(orederUID string) (models.Order, error) {
 }
 
 func (rc *redisCache) SetOrder(order models.Order) error {
-	const op = "rc.SetOrder"
+	const op = "storage.redis-cache.SetOrder"
 
 	orderJSON, err := json.Marshal(order)
 	if err != nil {
@@ -53,7 +53,7 @@ func (rc *redisCache) SetOrder(order models.Order) error {
 }
 
 func (rc *redisCache) RestoreFrom(db db) error {
-	const op = "rc.Restore"
+	const op = "storage.redis-cache.RestoreFrom"
 
 	orders, err := db.GetOrdersInLast(rc.exparationTime)
 	if err != nil {
@@ -69,7 +69,7 @@ func (rc *redisCache) RestoreFrom(db db) error {
 }
 
 func (rc *redisCache) Clear() error {
-	const op = "rc.Clear"
+	const op = "storage.redis-cache.Clear"
 
 	err := rc.client.FlushDB().Err()
 	if err != nil {
