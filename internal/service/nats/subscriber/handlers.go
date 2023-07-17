@@ -20,15 +20,7 @@ type cache interface {
 }
 
 func (s *subscriber) MsgHandler() stan.MsgHandler {
-	if s.subscription.Subj == "order" {
-		return s.orderMessage()
-	}
-
-	return s.standardMessage()
-}
-
-func (s *subscriber) orderMessage() stan.MsgHandler {
-	op := "nats.subscriber.orderMessage"
+	const op = "nats.subscriber.handlers.MsgHandler"
 	return func(msg *stan.Msg) {
 		s.msgCount++
 		printMsg(msg, s.msgCount)
@@ -48,13 +40,6 @@ func (s *subscriber) orderMessage() stan.MsgHandler {
 		if err != nil {
 			log.Printf("%s: %v", op, err)
 		}
-	}
-}
-
-func (s *subscriber) standardMessage() stan.MsgHandler {
-	return func(msg *stan.Msg) {
-		s.msgCount++
-		printMsg(msg, s.msgCount)
 	}
 }
 

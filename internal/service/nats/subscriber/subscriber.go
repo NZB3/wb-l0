@@ -46,7 +46,7 @@ var (
 )
 
 func NewSubscriber(nc *nats.Conn, db db, cache cache) (*subscriber, error) {
-	op := "nats.subscriber.NewSubscriber"
+	const op = "nats.subscriber.NewSubscriber"
 
 	sc, err := stan.Connect(clusterID, clientID, stan.NatsConn(nc), connectionLostHandler())
 	if err != nil {
@@ -78,7 +78,7 @@ func NewSubscriber(nc *nats.Conn, db db, cache cache) (*subscriber, error) {
 }
 
 func (s *subscriber) Subscribe(subj string) error {
-	op := "nats.subscriber.Subscribe"
+	const op = "nats.subscriber.Subscribe"
 
 	sub, err := s.subscribe(subj)
 	if err != nil {
@@ -93,7 +93,7 @@ func (s *subscriber) Subscribe(subj string) error {
 }
 
 func (s *subscriber) ServSubscription() error {
-	op := "nats.subscriber.ServSubscription"
+	const op = "nats.subscriber.ServSubscription"
 
 	sub := s.subscription
 	if sub == (subscription{}) {
@@ -127,7 +127,7 @@ func (s *subscriber) ServSubscription() error {
 }
 
 func (s *subscriber) subscribe(subj string) (stan.Subscription, error) {
-	op := "nats.subscriber.subscribe"
+	const op = "nats.subscriber.subscribe"
 
 	sub, err := s.sc.QueueSubscribe(subj, qgroup, s.MsgHandler(), s.startOpt, stan.DurableName(durable))
 	if err != nil {

@@ -17,10 +17,11 @@ type redisCache struct {
 var instance *redisCache = nil
 var once sync.Once
 
-func NewRedisCache(db int, addr, password string) *redisCache {
+func NewRedisCache(db int, addr, password string, expariationTime time.Duration) *redisCache {
 	once.Do(func() {
 		instance = &redisCache{
-			client: newRedisClient(db, addr, password),
+			client:         newRedisClient(db, addr, password),
+			exparationTime: expariationTime,
 		}
 	})
 	return instance
@@ -34,7 +35,7 @@ func (r *redisCache) CheckCache() error {
 }
 
 func newRedisClient(db int, addr, password string) *redis.Client {
-	op := "storage.redis.newRedisClient"
+	const op = "storage.redis.newRedisClient"
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password,

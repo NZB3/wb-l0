@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"sync"
+
+	_ "github.com/lib/pq"
 )
 
 type psql struct {
@@ -23,7 +25,7 @@ func NewPostgresConn(coonectionURI string) *psql {
 }
 
 func newPostgresConn(coonectionURI string) *sql.DB {
-	op := "storage.psql.newPostgresConn"
+	const op = "storage.psql.newPostgresConn"
 	conn, err := sql.Open("postgres", coonectionURI)
 	if err != nil {
 		log.Panicf("%s: %s", op, err)
