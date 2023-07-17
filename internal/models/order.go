@@ -19,23 +19,34 @@ type Order struct {
 	DeliveryService   string      `json:"delivery_service"`
 	ShardKey          string      `json:"shardkey"`
 	SMID              int         `json:"sm_id"`
-	DateCreated       TimeCreated `json:"date_created"`
+	DateCreated       dateCreated `json:"date_created"`
 	OofShard          string      `json:"oof_shard"`
 }
-type TimeCreated struct {
-	Time time.Time
+type dateCreated struct {
+	time.Time
 }
 
-func (t *TimeCreated) UnmarshalJSON(data []byte) error {
-	op := "TimeCreated.UnmarshalJSON"
-
-	if string(data) == "null" {
-		*t = TimeCreated{time.Now()}
-	} else {
-		err := json.Unmarshal(data, &t.Time)
-		if err != nil {
-			return fmt.Errorf("%s: %s", op, err)
-		}
+func (d *dateCreated) UnmarshalJSON(data []byte) error {
+	op := "models.dateCreated.UnmarshalJSON"
+	var t time.Time
+	err := json.Unmarshal(data, &t)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
 	}
+	if t.IsZero() {
+		t = time.Now()
+	}
+	d.Time = t
+	return nil
+}
+
+func (o *Order) Unmarshal(data []byte) error {
+	op := "models.Order.Unmarshal"
+
+	err := json.Unmarshal(data, o)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return nil
 }
