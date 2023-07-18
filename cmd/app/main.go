@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 	"project/internal/models"
-	"project/internal/service/nats/subscriber"
+	"project/internal/services/nats-stan/subscriber"
 	"project/internal/storage/psql"
 	rediscache "project/internal/storage/redis"
 	"time"
