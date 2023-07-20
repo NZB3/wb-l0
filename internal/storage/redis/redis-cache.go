@@ -20,21 +20,15 @@ func (rc *redisCache) Pong() {
 	fmt.Println(pong, err)
 }
 
-func (rc *redisCache) GetOrder(orederUID string) (models.Order, error) {
+func (rc *redisCache) GetOrder(orederUID string) ([]byte, error) {
 	const op = "storage.redis-cache.GetOrder"
 
-	cachedOrder, err := rc.client.Get(orederUID).Bytes()
+	jsonOrder, err := rc.client.Get(orederUID).Bytes()
 	if err != nil {
-		return models.Order{}, fmt.Errorf("%s: %s", op, err)
+		return nil, fmt.Errorf("%s: %s", op, err)
 	}
 
-	order := models.Order{}
-	err = json.Unmarshal(cachedOrder, &order)
-	if err != nil {
-		return models.Order{}, fmt.Errorf("%s: %s", op, err)
-	}
-
-	return order, nil
+	return jsonOrder, nil
 }
 
 func (rc *redisCache) SetOrder(order models.Order) error {

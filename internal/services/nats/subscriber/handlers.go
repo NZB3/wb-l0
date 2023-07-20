@@ -15,7 +15,6 @@ type db interface {
 }
 
 type cache interface {
-	GetOrder(orederID string) (models.Order, error)
 	SetOrder(order models.Order) error
 }
 
@@ -24,33 +23,31 @@ func (s *subscriber) MsgHandler() stan.MsgHandler {
 		s.msgCount++
 		printMsg(msg, s.msgCount)
 		if s.subscription.Subj == "order" {
-			s.orderMsgHandler()
+			s.orderMsgHandler(msg)
 		}
 	}
 }
 
-func (s *subscriber) orderMsgHandler() stan.MsgHandler {
+func (s *subscriber) orderMsgHandler(msg *stan.Msg) {
+	const op = "nats-stan.subscriber.handlers.orderMsgHandler"
 
-	return func(msg *stan.Msg) {
-		const op = "nats-stan.subscriber.handlers.orderMsgHandler"
-
-		order := models.Order{}
-		err := order.Unmarshal(msg.Data)
-		if err != nil {
-			log.Printf("Not order message: %v", err)
-			return
-		}
-
-		err = s.db.SaveDataFromOrder(order)
-		if err != nil {
-			log.Printf("%s: %v", op, err)
-		}
-
-		err = s.cache.SetOrder(order)
-		if err != nil {
-			log.Printf("%s: %v", op, err)
-		}
+	order := models.Order{}
+	err := order.Unmarshal(msg.Data)
+	if err != nil {
+		log.Printf("Not order message: %v", err)
+		return
 	}
+
+	err = s.db.SaveDataFromOrder(order)
+	if err != nil {
+		log.Printf("%s: %v", op, err)
+	}
+
+	err = s.cache.SetOrder(order)
+	if err != nil {
+		log.Printf("%s: %v", op, err)
+	}
+
 }
 
 func connectionLostHandler() stan.Option {

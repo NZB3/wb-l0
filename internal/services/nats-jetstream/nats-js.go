@@ -1,3 +1,0 @@
-package natsjs
-
-// Coming soon
