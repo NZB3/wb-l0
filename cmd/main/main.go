@@ -2,13 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
-	"net/http"
 	"project/internal/services/nats/subscriber"
+	"project/internal/storage/inmem"
 	"project/internal/storage/psql"
-	rediscache "project/internal/storage/redis"
-	"project/internal/web/handlers"
+	"project/internal/web/server"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -41,11 +39,19 @@ func main() {
 	}
 
 	db := psql.NewPostgresConn(cfg.databaseConnStr)
-	cache := rediscache.NewRedisCache(cfg.cacheDB, cfg.cacheAddr, cfg.cachePassword, cfg.cacheExparation)
+	cache := inmem.NewCache(cfg.cacheExparation, cfg.cacheExparation*2)
+	err = cache.Restore(db)
+	cache.Lookup()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	subscriber, err := subscriber.NewSubscriber(nc, db, cache)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	server := server.NewServer(cache)
 
 	flag.Parse()
 	var subj = "test"
@@ -58,14 +64,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer subscriber.Unsubscribe()
 
-	fmt.Println("Web Server running at http://localhost:8080")
-	http.HandleFunc("/", handlers.HandleMain(cache))
-	http.ListenAndServe(":8080", nil)
+	server.RunServer(cache)
 
-	// err = subscriber.ServSubscription()
-	// if err != nil {
-	// 	log.Println(err)
-	// 	os.Exit(1)
-	// }
+	waitUntilInterupt()
+}
+
+func waitUntilInterupt() {
+	c := make(chan struct{})
+	<-c
 }
