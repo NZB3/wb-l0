@@ -68,10 +68,4 @@ func main() {
 
 	server.RunServer(cache)
 
-	waitUntilInterupt()
-}
-
-func waitUntilInterupt() {
-	c := make(chan struct{})
-	<-c
 }
