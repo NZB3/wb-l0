@@ -67,5 +67,4 @@ func main() {
 	defer subscriber.Unsubscribe()
 
 	server.RunServer(cache)
-
 }
