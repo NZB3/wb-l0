@@ -3,6 +3,7 @@ package templates
 import (
 	"fmt"
 	"html/template"
+	"path/filepath"
 )
 
 type MainPage struct {
@@ -13,10 +14,15 @@ type MainPage struct {
 
 func GetMainTemplate() (*template.Template, error) {
 	const op = "web.templates.GetMainTemplate"
-
-	tmpl, err := template.ParseFiles("/Users/nikolay/Projects/WB/internship/L0/Project/internal/web/templates/index.html")
+	htmlPath, err := filepath.Abs("../../internal/web/templates/index.html")
 	if err != nil {
 		return nil, fmt.Errorf("%s: %v", op, err)
 	}
+
+	tmpl, err := template.ParseFiles(htmlPath)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %v", op, err)
+	}
+
 	return tmpl, nil
 }

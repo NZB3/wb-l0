@@ -2,9 +2,6 @@ package subscriber
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"os/signal"
 
 	"time"
 
@@ -34,9 +31,7 @@ var (
 var (
 	clusterID, clientID string = "test-cluster", "stan-sub"
 	URL                 string = stan.DefaultNatsURL
-	showTime            bool   = false
 	qgroup              string = ""
-	unsubscribe         bool   = false
 	startSeq            uint64 = 0
 	startDelta          string = ""
 	deliverAll          bool   = true
@@ -80,7 +75,7 @@ func NewSubscriber(nc *nats.Conn, db db, cache cache) (*subscriber, error) {
 func (s *subscriber) Subscribe(subj string) error {
 	const op = "nats.subscriber.Subscribe"
 
-	sub, err := s.subscribe(subj)
+	sub, err := s.sc.QueueSubscribe(subj, qgroup, s.MsgHandler(), s.startOpt, stan.DurableName(durable))
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -89,40 +84,5 @@ func (s *subscriber) Subscribe(subj string) error {
 		Subj:         subj,
 		Subscription: sub,
 	}
-
-	log.Printf("Listening on [%s], clientID=[%s], qgroup=[%s] durable=[%s]\n", s.subscription.Subj, clientID, qgroup, durable)
-
-	if showTime {
-		log.SetFlags(log.LstdFlags)
-	}
-
-	// Wait for a SIGINT (perhaps triggered by user with CTRL-C)
-	// Run cleanup when signal is received
-	signalChan := make(chan os.Signal, 1)
-	cleanupDone := make(chan bool)
-	signal.Notify(signalChan, os.Interrupt)
-	go func() {
-		for range signalChan {
-			fmt.Printf("\nReceived an interrupt, unsubscribing and closing connection...\n\n")
-			// Do not unsubscribe a durable on exit, except if asked to.
-			if durable == "" || unsubscribe {
-				sub.Unsubscribe()
-			}
-			s.sc.Close()
-			cleanupDone <- true
-		}
-	}()
-	<-cleanupDone
 	return nil
-}
-
-func (s *subscriber) subscribe(subj string) (stan.Subscription, error) {
-	const op = "nats.subscriber.subscribe"
-
-	sub, err := s.sc.QueueSubscribe(subj, qgroup, s.MsgHandler(), s.startOpt, stan.DurableName(durable))
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return sub, nil
 }

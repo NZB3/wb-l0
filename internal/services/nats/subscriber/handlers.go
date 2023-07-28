@@ -22,23 +22,25 @@ func (s *subscriber) MsgHandler() stan.MsgHandler {
 	return func(msg *stan.Msg) {
 		s.msgCount++
 		printMsg(msg, s.msgCount)
+
 		if s.subscription.Subj == "order" {
-			s.orderMsgHandler(msg)
+			order := models.Order{}
+			err := order.Unmarshal(msg.Data)
+			if err != nil {
+				log.Printf("Not order message: %v", err)
+				return
+			}
+
+			s.orderHandler(order)
 		}
+
 	}
 }
 
-func (s *subscriber) orderMsgHandler(msg *stan.Msg) {
-	const op = "nats-stan.subscriber.handlers.orderMsgHandler"
+func (s *subscriber) orderHandler(order models.Order) {
+	const op = "nats-stan.subscriber.handlers.orderHandler"
 
-	order := models.Order{}
-	err := order.Unmarshal(msg.Data)
-	if err != nil {
-		log.Printf("Not order message: %v", err)
-		return
-	}
-
-	err = s.db.SaveDataFromOrder(order)
+	err := s.db.SaveDataFromOrder(order)
 	if err != nil {
 		log.Printf("%s: %v", op, err)
 	}

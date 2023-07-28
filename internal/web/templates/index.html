@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <title>Document</title>
 </head>
 <body>
-    <form action="post">
+    <form method="post">
         <input type="text" name="orderID" placeholder="id">
         <input type="submit" value="submit">
     </form>
-   {{ . }}
+    {{ if . }}
+        <p> {{ . }} </p> 
+    {{ end }}
 </body>
 </html>

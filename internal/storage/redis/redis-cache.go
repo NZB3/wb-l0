@@ -46,7 +46,7 @@ func (rc *redisCache) SetOrder(order models.Order) error {
 	return nil
 }
 
-func (rc *redisCache) RestoreFrom(db db) error {
+func (rc *redisCache) Restore(db db) error {
 	const op = "storage.redis-cache.RestoreFrom"
 
 	orders, err := db.GetOrdersInLast(rc.exparationTime)
